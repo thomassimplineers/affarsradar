@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 // Initialize Supabase client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-const isTestMode = !supabaseUrl || !supabaseAnonKey; // Aktivera testläge endast när miljövariabler saknas
+// Återställ testläge till att bara aktiveras när miljövariabler saknas
+const isTestMode = !supabaseUrl || !supabaseAnonKey;
 
 // Mock data för testläge
 const mockData = {

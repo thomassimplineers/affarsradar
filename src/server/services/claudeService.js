@@ -7,7 +7,7 @@ class ClaudeService {
   constructor() {
     this.apiKey = process.env.CLAUDE_API_KEY;
     this.model = process.env.CLAUDE_MODEL || 'claude-3-7-sonnet-20250219';
-    this.isTestMode = this.apiKey === 'dummy_api_key_for_testing';
+    this.isTestMode = !this.apiKey;
     
     if (!this.apiKey) {
       console.warn('Warning: CLAUDE_API_KEY is not set in environment variables');

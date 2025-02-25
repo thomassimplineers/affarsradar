@@ -32,11 +32,26 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch insights and recommendations in parallel
-        const [insightsData, recommendationsData] = await Promise.all([
-          apiService.getInsights(),
-          apiService.getRecommendations()
-        ]);
+        // Använd dummy-data istället för att hämta från API:et
+        const insightsData = {
+          industryTrends: [
+            { title: 'Ökad digitalisering', description: 'Företag investerar i digitala lösningar.', sentiment: 'positive' },
+            { title: 'Hållbarhetsfokus', description: 'Konsumenter efterfrågar hållbara produkter.', sentiment: 'positive' }
+          ],
+          marketOpportunities: [
+            { title: 'Nya marknader', description: 'Expandera till nya geografiska områden.' }
+          ],
+          weeklyChallenge: { title: 'Kundintervjuer', description: 'Genomför djupintervjuer med nyckelkunder.' }
+        };
+        const recommendationsData = {
+          contacts: [
+            { name: 'Anna Andersson', company: 'Tech Innovations AB', reason: 'Visade intresse för er nya produkt.', priority: 'high' }
+          ],
+          actions: [
+            { title: 'Uppföljningsmöte', description: 'Boka möte med Anna Andersson.', deadline: '2025-03-10' }
+          ],
+          learningTip: { title: 'Förbättra din säljpitch', resource: 'https://example.com/sales-pitch-techniques' }
+        };
 
         setInsights(insightsData);
         setRecommendations(recommendationsData);

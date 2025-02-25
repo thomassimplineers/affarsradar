@@ -8,7 +8,7 @@ class SupabaseService {
     this.supabaseUrl = process.env.SUPABASE_URL;
     this.supabaseKey = process.env.SUPABASE_ANON_KEY;
     this.supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    this.isTestMode = process.env.CLAUDE_API_KEY === 'dummy_api_key_for_testing';
+    this.isTestMode = !this.supabaseUrl || !this.supabaseKey;
     
     if (!this.supabaseUrl || !this.supabaseKey) {
       console.warn('Warning: SUPABASE_URL or SUPABASE_ANON_KEY is not set in environment variables');
