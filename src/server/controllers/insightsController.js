@@ -5,15 +5,18 @@ const supabaseService = require('../services/supabaseService');
 const getInsights = async (req, res) => {
   try {
     const { userId, limit } = req.query;
+    console.log('Getting insights for userId:', userId);
     
     // Get insights from database
     let insights;
     
     try {
       insights = await supabaseService.getInsights(userId, limit);
+      console.log('Insights fetched from database:', insights ? insights.length : 0);
       
       // If there are insights in the database, return the most recent one
       if (insights && insights.length > 0) {
+        console.log('Returning existing insights from database');
         return res.status(200).json(insights[0]);
       }
     } catch (dbError) {
@@ -22,6 +25,7 @@ const getInsights = async (req, res) => {
     }
     
     // If no insights found in database or error occurred, generate fallback mock data
+    console.log('No insights found, creating fallback mock data');
     const mockInsights = {
       industryTrends: [
         { 
@@ -57,6 +61,7 @@ const getInsights = async (req, res) => {
       // Continue even if save fails
     }
     
+    console.log('Returning new mock insights');
     res.status(200).json(mockInsights);
   } catch (error) {
     console.error('Error generating insights:', error);
@@ -73,6 +78,12 @@ const generateInsights = async (req, res) => {
       return res.status(400).json({ message: 'Industry is required' });
     }
     
+    // Säkerställ att vi har ett userId att arbeta med
+    const userIdentifier = userId || req.user?.id;
+    if (!userIdentifier && !supabaseService.isTestMode) {
+      return res.status(400).json({ message: 'User ID is required for insights generation' });
+    }
+    
     let insights;
     
     // In production, we would use Claude API
@@ -80,31 +91,70 @@ const generateInsights = async (req, res) => {
     try {
       // Later: insights = await claudeService.generateBusinessInsights(industry);
       
-      insights = {
-        industryTrends: [
-          { 
-            title: `${industry}-trend: Ökade investeringar i innovativa lösningar`, 
-            description: `Företag inom ${industry} investerar mer i forskning och utveckling.`,
-            sentiment: 'positive'
-          },
-          { 
-            title: `${industry}-trend: Nya regelverk påverkar marknaden`, 
-            description: `Förändrad lagstiftning skapar både utmaningar och möjligheter inom ${industry}.`,
-            sentiment: 'neutral'
+      // Specialhantering för aktiemarknaden
+      if (industry === 'stockmarket') {
+        insights = {
+          industryTrends: [
+            { 
+              title: `Ökad volatilitet på aktiemarknaden`, 
+              description: `Geopolitiska spänningar och inflationsutvecklingen skapar större svängningar på börserna globalt.`,
+              sentiment: 'neutral'
+            },
+            { 
+              title: `Hållbarhetsfokuserade bolag presterar bättre`, 
+              description: `Företag med stark ESG-profil visar på genomsnittligt bättre avkastning än sina konkurrenter.`,
+              sentiment: 'positive'
+            },
+            {
+              title: `Teknologisektorn under press`,
+              description: `Högre ränteläge påverkar värderingen av tillväxtbolag inom teknologisektorn negativt.`,
+              sentiment: 'negative'
+            }
+          ],
+          marketOpportunities: [
+            {
+              title: `Utdelningsaktier i fokus`,
+              description: `Stabila bolag med hög direktavkastning blir mer attraktiva i osäkra tider.`,
+              sentiment: 'positive'
+            },
+            {
+              title: `Möjligheter inom framväxande marknader`,
+              description: `Vissa tillväxtmarknader erbjuder attraktiva värderingar och tillväxtpotential.`,
+              sentiment: 'positive'
+            }
+          ],
+          weeklyChallenge: {
+            title: `Analysera din portföljrisk`,
+            description: 'Genomför en stresstest av din aktieportfölj för att identifiera sektorer med hög exponering.'
           }
-        ],
-        marketOpportunities: [
-          {
-            title: `Nya nischer inom ${industry}`,
-            description: `Specialiserade tjänster för specifika segment inom ${industry} visar stark tillväxt.`,
-            sentiment: 'positive'
+        };
+      } else {
+        insights = {
+          industryTrends: [
+            { 
+              title: `${industry}-trend: Ökade investeringar i innovativa lösningar`, 
+              description: `Företag inom ${industry} investerar mer i forskning och utveckling.`,
+              sentiment: 'positive'
+            },
+            { 
+              title: `${industry}-trend: Nya regelverk påverkar marknaden`, 
+              description: `Förändrad lagstiftning skapar både utmaningar och möjligheter inom ${industry}.`,
+              sentiment: 'neutral'
+            }
+          ],
+          marketOpportunities: [
+            {
+              title: `Nya nischer inom ${industry}`,
+              description: `Specialiserade tjänster för specifika segment inom ${industry} visar stark tillväxt.`,
+              sentiment: 'positive'
+            }
+          ],
+          weeklyChallenge: {
+            title: `Analysera konkurrenternas strategi inom ${industry}`,
+            description: 'Identifiera de tre främsta konkurrenterna och kartlägg deras marknadspositionering.'
           }
-        ],
-        weeklyChallenge: {
-          title: `Analysera konkurrenternas strategi inom ${industry}`,
-          description: 'Identifiera de tre främsta konkurrenterna och kartlägg deras marknadspositionering.'
-        }
-      };
+        };
+      }
       
     } catch (aiError) {
       console.error('Error generating insights with AI:', aiError);

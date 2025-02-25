@@ -16,7 +16,7 @@ import {
   Alert,
 } from '@mui/material';
 import { Person, Assignment, School } from '@mui/icons-material';
-import axios from 'axios';
+import apiService from '../services/apiService';
 
 const Recommendations = () => {
   const [recommendations, setRecommendations] = useState(null);
@@ -28,10 +28,10 @@ const Recommendations = () => {
   }, []);
 
   const fetchRecommendations = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await axios.get('/api/recommendations');
-      setRecommendations(response.data);
+      const data = await apiService.getRecommendations();
+      setRecommendations(data);
       setError(null);
     } catch (err) {
       console.error('Error fetching recommendations:', err);

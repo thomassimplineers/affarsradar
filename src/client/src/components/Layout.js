@@ -25,7 +25,7 @@ import {
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Insikter', icon: <InsightsIcon />, path: '/insights' },
   { text: 'Rekommendationer', icon: <RecommendIcon />, path: '/recommendations' },
   { text: 'Inställningar', icon: <SettingsIcon />, path: '/settings' },

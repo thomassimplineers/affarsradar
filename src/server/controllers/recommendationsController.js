@@ -5,15 +5,18 @@ const supabaseService = require('../services/supabaseService');
 const getRecommendations = async (req, res) => {
   try {
     const { userId, limit } = req.query;
+    console.log('Getting recommendations for userId:', userId);
     
     // Get recommendations from database
     let recommendations;
     
     try {
       recommendations = await supabaseService.getRecommendations(userId, limit);
+      console.log('Recommendations fetched from database:', recommendations ? recommendations.length : 0);
       
       // If there are recommendations in the database, return the most recent one
       if (recommendations && recommendations.length > 0) {
+        console.log('Returning existing recommendations from database');
         return res.status(200).json(recommendations[0]);
       }
     } catch (dbError) {
@@ -22,6 +25,7 @@ const getRecommendations = async (req, res) => {
     }
     
     // If no recommendations found in database or error occurred, generate fallback mock data
+    console.log('No recommendations found, creating fallback mock data');
     const mockRecommendations = {
       contacts: [
         {
@@ -64,6 +68,7 @@ const getRecommendations = async (req, res) => {
       // Continue even if save fails
     }
     
+    console.log('Returning new mock recommendations');
     res.status(200).json(mockRecommendations);
   } catch (error) {
     console.error('Error generating recommendations:', error);

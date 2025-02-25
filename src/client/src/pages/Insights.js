@@ -16,7 +16,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import axios from 'axios';
+import apiService from '../services/apiService';
 
 const Insights = () => {
   const [insights, setInsights] = useState(null);
@@ -31,10 +31,10 @@ const Insights = () => {
   }, []);
 
   const fetchInsights = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await axios.get('/api/insights');
-      setInsights(response.data);
+      const data = await apiService.getInsights();
+      setInsights(data);
       setError(null);
     } catch (err) {
       console.error('Error fetching insights:', err);
@@ -44,26 +44,12 @@ const Insights = () => {
     }
   };
 
-  const handleGenerateInsights = async () => {
-    if (!industry) {
-      setError('Välj en bransch för att generera insikter');
-      return;
-    }
-
+  const generateNewInsights = async (industry) => {
+    setGenerating(true);
     try {
-      setGenerating(true);
+      const data = await apiService.generateInsights(industry);
+      setInsights(data);
       setError(null);
-      
-      // In a real application, this would call the backend with the industry parameter
-      // For now, we'll just wait a bit and use the existing data
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In a real app, you would do something like:
-      // const response = await axios.post('/api/insights/generate', { industry });
-      // setInsights(response.data);
-      
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error('Error generating insights:', err);
       setError('Det gick inte att generera nya insikter. Försök igen senare.');
@@ -119,6 +105,7 @@ const Insights = () => {
                   <MenuItem value="finance">Finans & Bank</MenuItem>
                   <MenuItem value="healthcare">Sjukvård</MenuItem>
                   <MenuItem value="construction">Bygg & Konstruktion</MenuItem>
+                  <MenuItem value="stockmarket">Aktiemarknaden</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -127,7 +114,7 @@ const Insights = () => {
                 variant="contained"
                 color="primary"
                 fullWidth
-                onClick={handleGenerateInsights}
+                onClick={() => generateNewInsights(industry)}
                 disabled={generating || !industry}
               >
                 {generating ? <CircularProgress size={24} /> : 'Generera Insikter'}

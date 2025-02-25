@@ -99,20 +99,29 @@ export const AuthProvider = ({ children }) => {
       
       if (error) throw error;
       
-      // Create profile if sign up successful
+      // Create profile using the backend API to bypass RLS
       if (data?.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              name: profileData.name || '',
-              industry: profileData.industry || '',
-              created_at: new Date().toISOString(),
+        try {
+          const response = await fetch('/api/create-profile', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
             },
-          ]);
-        
-        if (profileError) throw profileError;
+            body: JSON.stringify({
+              userId: data.user.id,
+              profileData,
+            }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.warn('Profile creation error:', errorData);
+            // Continue anyway, we'll still set user data
+          }
+        } catch (profileError) {
+          console.warn('Error creating profile via API:', profileError);
+          // Profile creation failure shouldn't block sign up
+        }
         
         // Set user with profile data
         setUser({

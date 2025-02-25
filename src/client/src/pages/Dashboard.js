@@ -15,7 +15,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Assessment, TrendingUp, TrendingDown, DateRange } from '@mui/icons-material';
-import axios from 'axios';
+import apiService from '../services/apiService';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -33,13 +33,13 @@ const Dashboard = () => {
       try {
         setLoading(true);
         // Fetch insights and recommendations in parallel
-        const [insightsRes, recommendationsRes] = await Promise.all([
-          axios.get('/api/insights'),
-          axios.get('/api/recommendations')
+        const [insightsData, recommendationsData] = await Promise.all([
+          apiService.getInsights(),
+          apiService.getRecommendations()
         ]);
 
-        setInsights(insightsRes.data);
-        setRecommendations(recommendationsRes.data);
+        setInsights(insightsData);
+        setRecommendations(recommendationsData);
         setError(null);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);

@@ -29,6 +29,7 @@ const industries = [
   { value: 'construction', label: 'Bygg & Konstruktion' },
   { value: 'consulting', label: 'Konsulttjänster' },
   { value: 'education', label: 'Utbildning' },
+  { value: 'stockmarket', label: 'Aktiemarknaden' },
   { value: 'other', label: 'Annat' }
 ];
 
