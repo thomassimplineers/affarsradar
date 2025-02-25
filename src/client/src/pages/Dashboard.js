@@ -15,7 +15,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Assessment, TrendingUp, TrendingDown, DateRange } from '@mui/icons-material';
-import apiService from '../services/apiService';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
