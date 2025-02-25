@@ -7,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   Divider,
-  TextField,
   Button,
   FormControl,
   InputLabel,
@@ -50,9 +49,11 @@ const Insights = () => {
       const data = await apiService.generateInsights(industry);
       setInsights(data);
       setError(null);
+      setSuccess(true);
     } catch (err) {
       console.error('Error generating insights:', err);
       setError('Det gick inte att generera nya insikter. Försök igen senare.');
+      setSuccess(false);
     } finally {
       setGenerating(false);
     }

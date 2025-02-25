@@ -135,7 +135,7 @@ const Settings = () => {
       setSaving(true);
       setError('');
       
-      const { data, error } = await updateUserSettings(user.id, settings);
+      const { error } = await updateUserSettings(user.id, settings);
       
       if (error) throw error;
       

@@ -176,5 +176,8 @@ class ApiService {
   }
 }
 
-// Export a singleton instance
-export default new ApiService(); 
+// Create a singleton instance
+const apiServiceInstance = new ApiService();
+
+// Export the singleton instance
+export default apiServiceInstance; 
