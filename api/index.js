@@ -1,36 +1,32 @@
+// Minimal serverless function för Vercel
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-// Import routes
-const apiRoutes = require('../src/server/routes/api');
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: '*',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Enkel middleware
+app.use(cors());
+app.use(express.json());
 
-app.use(express.json({ limit: '1mb' }));
-
-// Basic security headers
-app.use((req, res, next) => {
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  next();
+// Test route
+app.get('/test', (req, res) => {
+  res.status(200).json({ message: 'API is working!' });
 });
 
-// API Routes
-app.use('/', apiRoutes);
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!', error: err.message });
+// Catch-all route
+app.use('*', (req, res) => {
+  res.status(200).json({ 
+    message: 'AffärsRadar API',
+    endpoint: req.baseUrl,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // För Vercel serverless deployment
