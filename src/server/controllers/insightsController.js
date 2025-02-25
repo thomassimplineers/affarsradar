@@ -1,11 +1,28 @@
 const claudeService = require('../services/claudeService');
+const supabaseService = require('../services/supabaseService');
 
 // Get insights based on current trends and news
 const getInsights = async (req, res) => {
   try {
-    // In a production environment, we would call Claude API via claudeService
-    // For now, returning mock data as a placeholder
-    const insights = {
+    const { userId, limit } = req.query;
+    
+    // Get insights from database
+    let insights;
+    
+    try {
+      insights = await supabaseService.getInsights(userId, limit);
+      
+      // If there are insights in the database, return the most recent one
+      if (insights && insights.length > 0) {
+        return res.status(200).json(insights[0]);
+      }
+    } catch (dbError) {
+      console.warn('Error getting insights from database:', dbError);
+      // Continue with fallback if database fetch fails
+    }
+    
+    // If no insights found in database or error occurred, generate fallback mock data
+    const mockInsights = {
       industryTrends: [
         { 
           title: 'Ökad efterfrågan på hållbara produkter', 
@@ -31,9 +48,83 @@ const getInsights = async (req, res) => {
       }
     };
     
-    res.status(200).json(insights);
+    // Save mock insights to database for future use
+    try {
+      await supabaseService.saveInsights(mockInsights, userId);
+      console.log('Saved mock insights to database');
+    } catch (saveError) {
+      console.warn('Error saving mock insights to database:', saveError);
+      // Continue even if save fails
+    }
+    
+    res.status(200).json(mockInsights);
   } catch (error) {
     console.error('Error generating insights:', error);
+    res.status(500).json({ message: 'Failed to generate insights', error: error.message });
+  }
+};
+
+// Generate new insights for a specific industry
+const generateInsights = async (req, res) => {
+  try {
+    const { industry, userId } = req.body;
+    
+    if (!industry) {
+      return res.status(400).json({ message: 'Industry is required' });
+    }
+    
+    let insights;
+    
+    // In production, we would use Claude API
+    // For now, generating some industry-specific mock data
+    try {
+      // Later: insights = await claudeService.generateBusinessInsights(industry);
+      
+      insights = {
+        industryTrends: [
+          { 
+            title: `${industry}-trend: Ökade investeringar i innovativa lösningar`, 
+            description: `Företag inom ${industry} investerar mer i forskning och utveckling.`,
+            sentiment: 'positive'
+          },
+          { 
+            title: `${industry}-trend: Nya regelverk påverkar marknaden`, 
+            description: `Förändrad lagstiftning skapar både utmaningar och möjligheter inom ${industry}.`,
+            sentiment: 'neutral'
+          }
+        ],
+        marketOpportunities: [
+          {
+            title: `Nya nischer inom ${industry}`,
+            description: `Specialiserade tjänster för specifika segment inom ${industry} visar stark tillväxt.`,
+            sentiment: 'positive'
+          }
+        ],
+        weeklyChallenge: {
+          title: `Analysera konkurrenternas strategi inom ${industry}`,
+          description: 'Identifiera de tre främsta konkurrenterna och kartlägg deras marknadspositionering.'
+        }
+      };
+      
+    } catch (aiError) {
+      console.error('Error generating insights with AI:', aiError);
+      return res.status(500).json({ message: 'Failed to generate insights with AI', error: aiError.message });
+    }
+    
+    // Save insights to database
+    try {
+      const savedInsights = await supabaseService.saveInsights(insights, userId);
+      console.log('Saved new insights to database');
+      
+      // Return saved insights with database ID
+      return res.status(201).json(savedInsights);
+    } catch (dbError) {
+      console.warn('Error saving insights to database:', dbError);
+      // Return the generated insights even if saving fails
+      return res.status(201).json(insights);
+    }
+  } catch (error) {
+    console.error('Error in generateInsights:', error);
     res.status(500).json({ message: 'Failed to generate insights', error: error.message });
   }
 };
@@ -41,23 +132,57 @@ const getInsights = async (req, res) => {
 // Create a custom insight
 const createInsight = async (req, res) => {
   try {
-    const { title, description, type } = req.body;
+    const { title, description, type, sentiment, userId } = req.body;
     
     if (!title || !description || !type) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
     
-    // In a production environment, we would save to a database
-    // For now, just return the created object
-    const newInsight = {
-      id: Date.now().toString(),
-      title,
-      description,
-      type,
-      createdAt: new Date().toISOString()
-    };
+    // Format the insight to match the structure we use
+    let customInsight;
     
-    res.status(201).json(newInsight);
+    if (type === 'trend') {
+      customInsight = {
+        industryTrends: [
+          { title, description, sentiment: sentiment || 'neutral' }
+        ],
+        marketOpportunities: [],
+        weeklyChallenge: null
+      };
+    } else if (type === 'opportunity') {
+      customInsight = {
+        industryTrends: [],
+        marketOpportunities: [
+          { title, description, sentiment: sentiment || 'positive' }
+        ],
+        weeklyChallenge: null
+      };
+    } else if (type === 'challenge') {
+      customInsight = {
+        industryTrends: [],
+        marketOpportunities: [],
+        weeklyChallenge: { title, description }
+      };
+    } else {
+      return res.status(400).json({ message: 'Invalid insight type' });
+    }
+    
+    // Save to database
+    try {
+      const savedInsight = await supabaseService.saveInsights(customInsight, userId);
+      return res.status(201).json(savedInsight);
+    } catch (dbError) {
+      console.warn('Error saving custom insight to database:', dbError);
+      
+      // Return a mock response if database save fails
+      const mockInsight = {
+        id: Date.now().toString(),
+        ...customInsight,
+        createdAt: new Date().toISOString()
+      };
+      
+      return res.status(201).json(mockInsight);
+    }
   } catch (error) {
     console.error('Error creating insight:', error);
     res.status(500).json({ message: 'Failed to create insight', error: error.message });
@@ -66,5 +191,6 @@ const createInsight = async (req, res) => {
 
 module.exports = {
   getInsights,
+  generateInsights,
   createInsight
 };
